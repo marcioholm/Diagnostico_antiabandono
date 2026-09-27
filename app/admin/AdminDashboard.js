@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabaseClient";
-import { QUESTIONS } from "../lib/questions";
+import { QUESTIONS, overallPhase } from "../lib/questions";
+import ResultBlock from "../components/ResultBlock";
 
 export default function AdminDashboard() {
   const [rows, setRows] = useState([]);
@@ -58,13 +59,17 @@ export default function AdminDashboard() {
   );
 }
 
-function priorityLabel(row) {
-  const dims = [
-    { label: "Autocontrole", score: row.autocontrole },
-    { label: "Autoeficácia", score: row.autoeficacia },
-    { label: "Estágio de mudança", score: row.estagio_mudanca },
-    { label: "Conscienciosidade", score: row.conscienciosidade },
+function rowToDims(row) {
+  return [
+    { key: "autocontrole", label: "Autocontrole", color: "#ff5757", score: row.autocontrole },
+    { key: "autoeficacia", label: "Autoeficácia", color: "#ff25aa", score: row.autoeficacia },
+    { key: "constancia", label: "Estágio de mudança", color: "#8c52ff", score: row.estagio_mudanca },
+    { key: "conscienciosidade", label: "Conscienciosidade", color: "#fbfaf9", score: row.conscienciosidade },
   ];
+}
+
+function priorityLabel(row) {
+  const dims = rowToDims(row);
   return dims.reduce((min, d) => (d.score < min.score ? d : min), dims[0]).label;
 }
 
@@ -86,34 +91,49 @@ function RowWithDetail({ row, open, onToggle }) {
         <td>{priorityLabel(row)}</td>
         <td>
           <button className="link-btn" onClick={onToggle}>
-            {open ? "Fechar" : "Ver respostas"}
+            {open ? "Fechar" : "Ver diagnóstico"}
           </button>
         </td>
       </tr>
       {open && (
         <tr>
           <td colSpan={7}>
-            <div className="row-detail">
-              {QUESTIONS.map((q, i) => {
-                const a = row.respostas ? row.respostas[i] : null;
-                const text =
-                  a && typeof a === "object"
-                    ? a.label
-                    : a || a === 0
-                    ? String(a)
-                    : "(não respondida)";
-                return (
-                  <div key={q.id} style={{ marginBottom: "10px" }}>
-                    <strong style={{ color: "var(--white)" }}>{q.text}</strong>
-                    <br />
-                    {text}
-                  </div>
-                );
-              })}
+            <div className="row-detail" style={{ color: "var(--white)" }}>
+              <SubmissionDetail row={row} />
             </div>
           </td>
         </tr>
       )}
     </>
+  );
+}
+
+function SubmissionDetail({ row }) {
+  const dims = rowToDims(row);
+  const weakest = dims.reduce((min, d) => (d.score < min.score ? d : min), dims[0]);
+  const phase = overallPhase(row.indice_geral);
+  const respostas = row.respostas || [];
+
+  const qualItems = [11, 10, 12, 13, 14].map((i) => {
+    const q = QUESTIONS[i];
+    const a = respostas[i];
+    const answer =
+      a && typeof a === "object"
+        ? a.label
+        : a || a === 0
+        ? String(a).trim() || null
+        : null;
+    return { question: q.text, answer };
+  });
+
+  return (
+    <ResultBlock
+      nome={row.nome}
+      dims={dims}
+      overall={row.indice_geral}
+      weakest={weakest}
+      phase={phase}
+      qualItems={qualItems}
+    />
   );
 }

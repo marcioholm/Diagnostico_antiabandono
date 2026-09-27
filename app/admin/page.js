@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabaseClient";
 import AdminDashboard from "./AdminDashboard";
+import PublicLinkCard from "./PublicLinkCard";
 
 export default function AdminPage() {
   const [session, setSession] = useState(undefined); // undefined = carregando
@@ -93,6 +94,7 @@ export default function AdminPage() {
           Sair
         </button>
       </div>
+      <PublicLinkCard />
       <AdminDashboard />
     </div>
   );
