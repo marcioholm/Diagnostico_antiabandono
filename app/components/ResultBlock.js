@@ -1,4 +1,4 @@
-import { bandFor, DIMENSION_BANDS } from "../lib/questions";
+import { QUESTIONS, BLOCKS, bandFor, DIMENSION_BANDS } from "../lib/questions";
 
 export function Radar({ dims }) {
   const cx = 150, cy = 140, R = 100;
@@ -70,7 +70,33 @@ export function Radar({ dims }) {
 // weakest: dims item
 // phase: {tag, label, emphasis, desc}
 // qualItems: [{question, answer}]
-export default function ResultBlock({ nome, dims, overall, weakest, phase, qualItems }) {
+export default function ResultBlock({ nome, dims, overall, weakest, phase, answers }) {
+  const qualIdx = [11, 10, 12, 13, 14]; // Bloco 3: estágio de mudança + respostas abertas
+  const qualItems = qualIdx.map((i) => {
+    const q = QUESTIONS[i];
+    const a = answers[i];
+    const answer =
+      a && typeof a === "object"
+        ? a.label
+        : a || a === 0
+        ? String(a).trim() || null
+        : null;
+    return { question: q.text, answer };
+  });
+
+  const scoredBlocks = ["autocontrole", "autoeficacia", "conscienciosidade"];
+  const answerRows = scoredBlocks.map((blockKey) => {
+    const items = QUESTIONS.map((q, i) => ({ q, i }))
+      .filter(({ q }) => q.block === blockKey && (q.type === "likert5" || q.type === "scale10"))
+      .map(({ q, i }) => {
+        const a = answers[i];
+        const max = q.type === "likert5" ? 5 : 10;
+        const value = typeof a === "number" ? `${a}/${max}` : "—";
+        return { text: q.text, value };
+      });
+    return { blockKey, label: BLOCKS[blockKey].label, color: BLOCKS[blockKey].color, items };
+  });
+
   return (
     <>
       <div className="result-head">
@@ -115,6 +141,27 @@ export default function ResultBlock({ nome, dims, overall, weakest, phase, qualI
             </div>
           );
         })}
+      </div>
+
+      <div className="answers-section">
+        <div className="label">
+          <span className="dot" />
+          O que você respondeu em cada pergunta
+        </div>
+        {answerRows.map((block) => (
+          <div className="answers-block" key={block.blockKey}>
+            <div className="answers-block-title">
+              <span className="dot" style={{ background: block.color }} />
+              {block.label}
+            </div>
+            {block.items.map((item, i) => (
+              <div className="answer-row" key={i}>
+                <span className="qtext">{item.text}</span>
+                <span className="answer-value">{item.value}</span>
+              </div>
+            ))}
+          </div>
+        ))}
       </div>
 
       <div className="qual-section">

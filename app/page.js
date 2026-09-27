@@ -315,18 +315,6 @@ function ResultsScreen({ nome, answers, result, saveState, onRestart }) {
   const printRef = useRef(null);
   const { dims, overall, weakest, phase } = result;
 
-  const qualItems = [11, 10, 12, 13, 14].map((i) => {
-    const q = QUESTIONS[i];
-    const a = answers[i];
-    const answer =
-      a && typeof a === "object"
-        ? a.label
-        : a && String(a).trim()
-        ? String(a).trim()
-        : null;
-    return { question: q.text, answer };
-  });
-
   function handlePrint() {
     window.print();
   }
@@ -339,7 +327,7 @@ function ResultsScreen({ nome, answers, result, saveState, onRestart }) {
         overall={overall}
         weakest={weakest}
         phase={phase}
-        qualItems={qualItems}
+        answers={answers}
       />
 
       <div className="cta-block no-print">

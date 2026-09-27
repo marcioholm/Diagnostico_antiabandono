@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabaseClient";
-import { QUESTIONS, overallPhase } from "../lib/questions";
+import { overallPhase } from "../lib/questions";
 import ResultBlock from "../components/ResultBlock";
 
 export default function AdminDashboard() {
@@ -114,18 +114,6 @@ function SubmissionDetail({ row }) {
   const phase = overallPhase(row.indice_geral);
   const respostas = row.respostas || [];
 
-  const qualItems = [11, 10, 12, 13, 14].map((i) => {
-    const q = QUESTIONS[i];
-    const a = respostas[i];
-    const answer =
-      a && typeof a === "object"
-        ? a.label
-        : a || a === 0
-        ? String(a).trim() || null
-        : null;
-    return { question: q.text, answer };
-  });
-
   return (
     <ResultBlock
       nome={row.nome}
@@ -133,7 +121,7 @@ function SubmissionDetail({ row }) {
       overall={row.indice_geral}
       weakest={weakest}
       phase={phase}
-      qualItems={qualItems}
+      answers={respostas}
     />
   );
 }
